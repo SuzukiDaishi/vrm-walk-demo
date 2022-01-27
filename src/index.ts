@@ -76,9 +76,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     controller.forwardUpdate()
     controller.turnUpdate()
 
-    cameraContainer.position.x = vrm.scene.position.x 
-    cameraContainer.position.y = vrm.scene.position.y + 1
-    cameraContainer.position.z = vrm.scene.position.z + 5
+    cameraContainer.position.set(
+      vrm.scene.position.x,
+      vrm.scene.position.y + 1,
+      vrm.scene.position.z + 5,
+    )
   
     let time = new Date().getTime()
     if (mixer) mixer.update(time - lastTime)
