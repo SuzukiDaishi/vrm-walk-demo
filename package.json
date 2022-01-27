@@ -12,7 +12,6 @@
   "dependencies": {
     "@pixiv/three-vrm": "^0.6.8",
     "@types/three": "^0.136.1",
-    "popmotion": "^11.0.3",
     "three": "^0.136.0"
   },
   "private": true

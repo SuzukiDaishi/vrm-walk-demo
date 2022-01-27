@@ -3,14 +3,14 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { VRM } from '@pixiv/three-vrm'
 import { mixamoClipToVRMClip } from './VRMAnimationClip'
-
-import { animate } from 'popmotion'
+import { VRMController } from './VRMController'
 
 let vrm: VRM
 let mixer: THREE.AnimationMixer
 let clock = new THREE.Clock();
 let walk: THREE.AnimationAction
 let walkFlug: boolean = false
+let controller: VRMController
 
 window.addEventListener('DOMContentLoaded', async () => {
 
@@ -50,7 +50,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   scene.add(vrm.scene)
   vrm.scene.rotation.y = Math.PI
 
-
   const res = await fetch('./assets/idol.json')
   vrm.humanoid!.setPose(await res.json())
 
@@ -64,6 +63,8 @@ window.addEventListener('DOMContentLoaded', async () => {
   walk = mixer.clipAction(walkClip).setEffectiveWeight(1.0)
   walk.clampWhenFinished = true
 
+  controller = new VRMController(vrm, walk)
+
   // グリッドの表示
   const gridHelper = new THREE.GridHelper(10, 10);
   scene.add( gridHelper )
@@ -72,43 +73,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   const tick = (): void => {
     requestAnimationFrame(tick)
 
+    controller.forwardUpdate()
+    controller.turnUpdate()
+  
     let time = new Date().getTime()
     if (mixer) mixer.update(time - lastTime)
     lastTime = time
-
     renderer.setAnimationLoop(() => {
       renderer.render(scene, camera)
-      let speed = 0.025
-      if (walkFlug) {
-        if ( 0 <= vrm.scene.rotation.y && vrm.scene.rotation.y < Math.PI/2 ) {
-          let rate = (vrm.scene.rotation.y - 0) / ( Math.PI/2 )
-          let a = rate
-          let b = 1 - rate
-          vrm.scene.position.x += a * speed
-          vrm.scene.position.z -= b * speed
-        }
-        if ( Math.PI/2 <= vrm.scene.rotation.y && vrm.scene.rotation.y < Math.PI ) {
-          let rate = (vrm.scene.rotation.y - Math.PI/2) / ( Math.PI )
-          let a = rate
-          let b = 1 - rate
-          vrm.scene.position.z -= a * speed
-          vrm.scene.position.x -= b * speed
-        }
-        if ( Math.PI <= vrm.scene.rotation.y && vrm.scene.rotation.y < 3*Math.PI/2 ) {
-          let rate = (vrm.scene.rotation.y - Math.PI) / ( 3*Math.PI/2 )
-          let a = rate
-          let b = 1 - rate
-          vrm.scene.position.x -= a * speed
-          vrm.scene.position.z += b * speed
-        }
-        if ( 3*Math.PI/2 <= vrm.scene.rotation.y && vrm.scene.rotation.y < 2*Math.PI ) {
-          let rate = (vrm.scene.rotation.y - 3*Math.PI/2) / ( 2*Math.PI )
-          let a = rate
-          let b = 1 - rate
-          vrm.scene.position.z += a * speed
-          vrm.scene.position.x += b * speed
-        }
-      } 
     })
     if(mixer){
       mixer.update(clock.getDelta())
@@ -122,15 +94,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 window.addEventListener('keyup', (e) => {
   switch (e.code) {
     case 'ArrowUp':
-    case 'ArrowLeft':
-    case 'ArrowDown':
-    case 'ArrowRight':
     case 'KeyW':
+      controller.forwardEnd()
+      break
+    case 'ArrowLeft':
     case 'KeyA':
-    case 'KeyS':
+    case 'ArrowRight':
     case 'KeyD':
-      walk.stop()
-      walkFlug = false
+      controller.turnEnd()
       break
   }
 })
@@ -139,47 +110,15 @@ window.addEventListener('keydown', (e) => {
   switch (e.code) {
     case 'ArrowUp':
     case 'KeyW':
-      walk.play()
-      walkFlug = true
-      if ( vrm.scene.rotation.y >= 270*Math.PI/180 ) 
-        vrm.scene.rotation.y -= 2*Math.PI
-      animate({
-        from: vrm.scene.rotation.y,
-        to: 0 * Math.PI / 180,
-        onUpdate: latest => vrm.scene.rotation.y = latest
-      })
+      controller.forwardBegin()
       break
     case 'ArrowLeft':
     case 'KeyA':
-      walk.play()
-      walkFlug = true
-      animate({
-        from: vrm.scene.rotation.y,
-        to: 90 * Math.PI / 180,
-        onUpdate: latest => vrm.scene.rotation.y = latest
-      })
-      break
-    case 'ArrowDown':
-    case 'KeyS':
-      walk.play()
-      walkFlug = true
-      animate({
-        from: vrm.scene.rotation.y,
-        to: 180 * Math.PI / 180,
-        onUpdate: latest => vrm.scene.rotation.y = latest
-      })
+      controller.turnBegin('left')
       break
     case 'ArrowRight':
     case 'KeyD':
-      walk.play()
-      walkFlug = true
-      if ( vrm.scene.rotation.y <= 0 ) 
-        vrm.scene.rotation.y += 2*Math.PI
-      animate({
-        from: vrm.scene.rotation.y,
-        to: 270 * Math.PI / 180,
-        onUpdate: latest => vrm.scene.rotation.y = latest
-      })
+      controller.turnBegin('right')
       break
   }
 })
