@@ -49,7 +49,7 @@ export class VRMController {
   turnUpdate(radian: number = 1*Math.PI/180) {
     if (this.turnDirection !== TurnDirection.None) {
       let isRight = this.turnDirection === TurnDirection.Right
-      let rotY = this.vrm.scene.rotation.y + (isRight ? radian : - radian)
+      let rotY = this.vrm.scene.rotation.y + (isRight ? - radian : radian)
       if ( rotY > 2*Math.PI ) rotY = rotY - 2*Math.PI
       this.vrm.scene.rotation.y = rotY
     }

@@ -4,13 +4,22 @@ import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
 import { VRM } from '@pixiv/three-vrm'
 import { mixamoClipToVRMClip } from './VRMAnimationClip'
 import { VRMController } from './VRMController'
+import { MetaAnker } from './MetaAnker'
 
 let vrm: VRM
 let mixer: THREE.AnimationMixer
 let clock = new THREE.Clock();
 let walk: THREE.AnimationAction
-let walkFlug: boolean = false
 let controller: VRMController
+let ankerMesh: MetaAnker
+let isWorp: boolean = false
+let warpElm = document.createElement('div')
+warpElm.style.background = 'url(./assets/warp.gif) center / cover'
+warpElm.style.position = 'absolute'
+warpElm.style.left = '0px'
+warpElm.style.top = '0px'
+warpElm.style.width = '100vw'
+warpElm.style.height = '100vh'
 
 window.addEventListener('DOMContentLoaded', async () => {
 
@@ -42,13 +51,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   const light = new THREE.DirectionalLight(0xffffff)
   light.position.set(1,1,1).normalize()
   scene.add(light)
+  
+  ankerMesh = new MetaAnker()
+  ankerMesh.position.set(0, 1, -5)
+  scene.add(ankerMesh)
 
   // アバター読み込み
   const gltfLoader = new GLTFLoader()
   const gltf = await gltfLoader.loadAsync('./assets/model.vrm')
   vrm = await VRM.from(gltf)
+  vrm.scene.position.set(0, 0, 5)
   scene.add(vrm.scene)
-  vrm.scene.rotation.y = Math.PI
 
   const res = await fetch('./assets/idol.json')
   vrm.humanoid!.setPose(await res.json())
@@ -75,6 +88,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     controller.forwardUpdate()
     controller.turnUpdate()
+
+    ankerMesh.transitionUpdate(vrm, () => {
+      if (!isWorp) {
+        isWorp = true
+        document.body.appendChild(warpElm)
+      } 
+    })
 
     cameraContainer.position.set(
       vrm.scene.position.x,
