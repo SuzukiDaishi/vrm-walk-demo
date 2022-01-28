@@ -4,6 +4,7 @@ import { VRM } from '@pixiv/three-vrm'
 export class MetaAnker extends THREE.Mesh {
 
   url: string
+  warp: boolean = false
 
   constructor(url: string) {
     const geometry = new THREE.CylinderGeometry(1.2, 1.2, 2, 50)
@@ -28,7 +29,21 @@ export class MetaAnker extends THREE.Mesh {
   transitionUpdate(vrm: VRM, shutdownAction: () => void = () => {}) {
     if ( this.isContains(vrm) ) {
       shutdownAction()
-      window.location.href = this.url
+      if (!this.warp) {
+        this.warp = true
+        const iframe = document.createElement('iframe')
+        iframe.src = this.url
+        iframe.style.position = 'absolute'
+        iframe.style.left = '0px'
+        iframe.style.top = '0px'
+        iframe.style.width = '100vw'
+        iframe.style.height = '100vh'
+        document.body.appendChild(iframe)
+        iframe.onload = () => {
+
+        }
+        // window.location.href = this.url
+      }
     }
   }
 

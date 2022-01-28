@@ -8,9 +8,16 @@ import { MetaAnker } from './MetaAnker'
 
 if ( (new URL(window.location.href)).searchParams.get('messaging') ) {
 
-  console.log('hello')
-
   const permission = ['']
+
+  let warpElm = document.createElement('div')
+  warpElm.style.background = 'url(./assets/warp.gif) center / cover'
+  warpElm.style.position = 'absolute'
+  warpElm.style.left = '0px'
+  warpElm.style.top = '0px'
+  warpElm.style.width = '100vw'
+  warpElm.style.height = '100vh'
+  document.body.appendChild(warpElm)
 
   window.addEventListener('message', (event) => {
     console.log(event)
@@ -24,15 +31,6 @@ if ( (new URL(window.location.href)).searchParams.get('messaging') ) {
   let walk: THREE.AnimationAction
   let controller: VRMController
   let ankerMesh: MetaAnker
-  let isWorp: boolean = false
-
-  let warpElm = document.createElement('div')
-  warpElm.style.background = 'url(./assets/warp.gif) center / cover'
-  warpElm.style.position = 'absolute'
-  warpElm.style.left = '0px'
-  warpElm.style.top = '0px'
-  warpElm.style.width = '100vw'
-  warpElm.style.height = '100vh'
 
   window.addEventListener('DOMContentLoaded', async () => {
 
@@ -65,7 +63,7 @@ if ( (new URL(window.location.href)).searchParams.get('messaging') ) {
     light.position.set(1,1,1).normalize()
     scene.add(light)
     
-    ankerMesh = new MetaAnker('https://suzukidaishi.github.io/vrm-walk-demo/index.html')
+    ankerMesh = new MetaAnker('https://suzukidaishi.github.io/vrm-walk-demo/index.html?messaging=true')
     ankerMesh.position.set(0, 1, -5)
     scene.add(ankerMesh)
 
@@ -103,10 +101,6 @@ if ( (new URL(window.location.href)).searchParams.get('messaging') ) {
       controller.turnUpdate()
 
       ankerMesh.transitionUpdate(vrm, () => {
-        if (!isWorp) {
-          isWorp = true
-          document.body.appendChild(warpElm)
-        } 
       })
 
       cameraContainer.position.set(
