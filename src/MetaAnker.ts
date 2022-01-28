@@ -40,9 +40,9 @@ export class MetaAnker extends THREE.Mesh {
         iframe.style.height = '100vh'
         document.body.appendChild(iframe)
         iframe.onload = () => {
-
+          iframe.contentWindow!.postMessage('hello world', (new URL(this.url)).origin)
         }
-        // window.location.href = this.url
+        // window.location.href = 
       }
     }
   }
